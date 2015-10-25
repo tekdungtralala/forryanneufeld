@@ -22,11 +22,13 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -60,40 +62,12 @@ public class DoTest {
 	private SensorDataRepository sensorDataRepo;
 
 	@Test
-	public void startTest() throws JsonProcessingException, FileNotFoundException {
+	public void testReportEndpoint() throws JsonProcessingException, FileNotFoundException {
 		logger.info("*********************************");
 		logger.info("*");
-		logger.info("*");
-		logger.info("* Start Test");
-		logger.info("*");
+		logger.info("* Start Test Report Endpoint");
 		logger.info("*");
 		logger.info("*********************************");
-
-		logger.info("POST /auth");
-		// default data, only has 2 entry
-		logger.info("total customer is 2");
-		Assert.assertEquals(2, customerRepo.findAll().size());
-
-		CustomerModel cm = new CustomerModel("new customer");
-		TokenModel model = restTemplate.postForObject("http://localhost:9009/auth", cm, TokenModel.class);
-		logger.info("   model != null");
-		Assert.assertEquals(true, model != null);
-		logger.info("   model.getToken() != null");
-		Assert.assertEquals(true, model.getToken() != null);
-
-		Customer storedCustomer1 = customerRepo.findByToken(model.getToken());
-		logger.info("   storedCustomer1 != null");
-		Assert.assertEquals(true, storedCustomer1 != null);
-		logger.info("   storedCustomer1.getToken() != null");
-		Assert.assertEquals(true, storedCustomer1.getToken() != null);
-
-		logger.info("   model.getToken() equals storedCustomer1.getToken()");
-		Assert.assertEquals(model.getToken(), storedCustomer1.getToken());
-		logger.info("   cm.getCustomer_id() equals storedCustomer1.getCustomerId()");
-		Assert.assertEquals(cm.getCustomer_id(), storedCustomer1.getCustomerId());
-
-		logger.info("total customer is 3");
-		Assert.assertEquals(3, customerRepo.findAll().size());
 
 		logger.info("POST /report");
 		HashMap<String, Sensor> sensorMap = new HashMap<>();
@@ -109,13 +83,13 @@ public class DoTest {
 		newSensor.setData(sensorsData);
 		sensorMap.put("new sensor UUID", newSensor);
 
-		logger.info("total sensor is 2");
+		logger.info("  TEST   total sensor is 2");
 		Assert.assertEquals(2, sensorRepo.findAll().size());
-		logger.info("total sensor data is 5");
+		logger.info("  TEST   total sensor data is 5");
 		Assert.assertEquals(5, sensorDataRepo.findAll().size());
 
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		headers.add("token", model.getToken());
+		headers.add("token", "111222333");
 		headers.add("Content-Type", "application/json");
 
 		RestTemplate restTemplate = new RestTemplate();
@@ -125,16 +99,96 @@ public class DoTest {
 
 		HttpEntity<String> response = restTemplate.exchange("http://localhost:9009/report", HttpMethod.POST, request,
 				String.class);
-		logger.info(response.getHeaders());
 
-		logger.info("total sensor is 3");
+		logger.info("  TEST   total sensor is 3");
 		Assert.assertEquals(3, sensorRepo.findAll().size());
-		logger.info("total sensor data is 6");
+		logger.info("  TEST   total sensor data is 6");
 		Assert.assertEquals(6, sensorDataRepo.findAll().size());
+
+		response = restTemplate.exchange("http://localhost:9009/report", HttpMethod.POST, request, String.class);
+		logger.info("  TEST   total sensor is 3");
+		Assert.assertEquals(3, sensorRepo.findAll().size());
+		logger.info("  TEST   total sensor data is 7");
+		Assert.assertEquals(7, sensorDataRepo.findAll().size());
+
+		try {
+			sensorMap = new HashMap<>();
+			restTemplate.postForObject("http://localhost:9009/report", sensorMap, String.class);
+		} catch (HttpClientErrorException e) {
+			logger.info("  TEST   response code == 400");
+			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
+		}
 
 		logger.info("*********************************");
 		logger.info("*");
-		logger.info("* Finish Test");
+		logger.info("* End Test Report endpoint");
+		logger.info("*");
+		logger.info("*********************************");
+	}
+
+	@Test
+	public void testAuthEndpoint() throws JsonProcessingException, FileNotFoundException {
+		logger.info("*********************************");
+		logger.info("*");
+		logger.info("* Start Test Auth endpoint");
+		logger.info("*");
+		logger.info("*********************************");
+
+		logger.info("POST /auth");
+		// default data, only has 2 entry
+		logger.info("total customer is 2");
+		Assert.assertEquals(2, customerRepo.findAll().size());
+
+		CustomerModel cm = new CustomerModel("new customer");
+		TokenModel model = restTemplate.postForObject("http://localhost:9009/auth", cm, TokenModel.class);
+		logger.info("  TEST   model != null");
+		Assert.assertEquals(true, model != null);
+		logger.info("  TEST   model.getToken() != null");
+		Assert.assertEquals(true, model.getToken() != null);
+
+		Customer storedCustomer1 = customerRepo.findByToken(model.getToken());
+		logger.info("  TEST   storedCustomer1 != null");
+		Assert.assertEquals(true, storedCustomer1 != null);
+		logger.info("  TEST   storedCustomer1.getToken() != null");
+		Assert.assertEquals(true, storedCustomer1.getToken() != null);
+
+		logger.info("  TEST   model.getToken() equals storedCustomer1.getToken()");
+		Assert.assertEquals(model.getToken(), storedCustomer1.getToken());
+		logger.info("  TEST   cm.getCustomer_id() equals storedCustomer1.getCustomerId()");
+		Assert.assertEquals(cm.getCustomer_id(), storedCustomer1.getCustomerId());
+
+		logger.info("  TEST   total customer is 3");
+		Assert.assertEquals(3, customerRepo.findAll().size());
+
+		try {
+			restTemplate.postForObject("http://localhost:9009/auth", new CustomerModel(), TokenModel.class);
+		} catch (HttpClientErrorException e) {
+			logger.info("  TEST   response code == 400");
+			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
+		}
+		try {
+			restTemplate.postForObject("http://localhost:9009/auth", new CustomerModel(""), TokenModel.class);
+		} catch (HttpClientErrorException e) {
+			logger.info("  TEST   response code == 400");
+			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
+		}
+
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+		headers.add("Content-Type", "application/json");
+		HttpEntity<CustomerModel> request = new HttpEntity<CustomerModel>(cm, headers);
+		HttpEntity<String> response = restTemplate.exchange("http://localhost:9009/auth", HttpMethod.POST, request,
+				String.class);
+		// logger.info("BODY " + response.getBody());
+		// logger.info("BODY " + response.getHeaders());
+
+		logger.info("  TEST   total customer is 3");
+		Assert.assertEquals(3, customerRepo.findAll().size());
+
+		logger.info("*********************************");
+		logger.info("*");
+		logger.info("* End test Auth endpoint");
 		logger.info("*");
 		logger.info("*********************************");
 	}
