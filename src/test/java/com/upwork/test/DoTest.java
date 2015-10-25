@@ -54,7 +54,8 @@ public class DoTest {
 
 	@Test
 	public void testReportEndpoint() throws JsonProcessingException, FileNotFoundException {
-		logger.info("*********************************");
+		int port = Integer.valueOf(System.getProperty("PORT"));
+		logger.info("********************************* ");
 		logger.info("*");
 		logger.info("* Start Test Report Endpoint");
 		logger.info("*");
@@ -88,15 +89,16 @@ public class DoTest {
 
 		HttpEntity<HashMap<String, Sensor>> request = new HttpEntity<HashMap<String, Sensor>>(sensorMap, headers);
 
-		HttpEntity<String> response = restTemplate.exchange("http://localhost:9009/report", HttpMethod.POST, request,
-				String.class);
+		HttpEntity<String> response = restTemplate.exchange("http://localhost:" + port + "/report", HttpMethod.POST,
+				request, String.class);
 
 		logger.info("  TEST   total sensor is 3");
 		Assert.assertEquals(3, sensorRepo.findAll().size());
 		logger.info("  TEST   total sensor data is 6");
 		Assert.assertEquals(6, sensorDataRepo.findAll().size());
 
-		response = restTemplate.exchange("http://localhost:9009/report", HttpMethod.POST, request, String.class);
+		response = restTemplate.exchange("http://localhost:" + port + "/report", HttpMethod.POST, request,
+				String.class);
 		logger.info("  TEST   total sensor is 3");
 		Assert.assertEquals(3, sensorRepo.findAll().size());
 		logger.info("  TEST   total sensor data is 7");
@@ -104,7 +106,7 @@ public class DoTest {
 
 		try {
 			sensorMap = new HashMap<>();
-			restTemplate.postForObject("http://localhost:9009/report", sensorMap, String.class);
+			restTemplate.postForObject("http://localhost:" + port + "/report", sensorMap, String.class);
 		} catch (HttpClientErrorException e) {
 			logger.info("  TEST   response code == 400");
 			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
@@ -119,6 +121,7 @@ public class DoTest {
 
 	@Test
 	public void testAuthEndpoint() throws JsonProcessingException, FileNotFoundException {
+		int port = Integer.valueOf(System.getProperty("PORT"));
 		logger.info("*********************************");
 		logger.info("*");
 		logger.info("* Start Test Auth endpoint");
@@ -131,7 +134,7 @@ public class DoTest {
 		Assert.assertEquals(2, customerRepo.findAll().size());
 
 		CustomerModel cm = new CustomerModel("new customer");
-		TokenModel model = restTemplate.postForObject("http://localhost:9009/auth", cm, TokenModel.class);
+		TokenModel model = restTemplate.postForObject("http://localhost:" + port + "/auth", cm, TokenModel.class);
 		logger.info("  TEST   model != null");
 		Assert.assertEquals(true, model != null);
 		logger.info("  TEST   model.getToken() != null");
@@ -152,13 +155,13 @@ public class DoTest {
 		Assert.assertEquals(3, customerRepo.findAll().size());
 
 		try {
-			restTemplate.postForObject("http://localhost:9009/auth", new CustomerModel(), TokenModel.class);
+			restTemplate.postForObject("http://localhost:" + port + "/auth", new CustomerModel(), TokenModel.class);
 		} catch (HttpClientErrorException e) {
 			logger.info("  TEST   response code == 400");
 			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
 		}
 		try {
-			restTemplate.postForObject("http://localhost:9009/auth", new CustomerModel(""), TokenModel.class);
+			restTemplate.postForObject("http://localhost:" + port + "/auth", new CustomerModel(""), TokenModel.class);
 		} catch (HttpClientErrorException e) {
 			logger.info("  TEST   response code == 400");
 			Assert.assertEquals(e.getStatusCode(), HttpStatus.BAD_REQUEST);
@@ -169,8 +172,8 @@ public class DoTest {
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 		headers.add("Content-Type", "application/json");
 		HttpEntity<CustomerModel> request = new HttpEntity<CustomerModel>(cm, headers);
-		HttpEntity<String> response = restTemplate.exchange("http://localhost:9009/auth", HttpMethod.POST, request,
-				String.class);
+		HttpEntity<String> response = restTemplate.exchange("http://localhost:" + port + "/auth", HttpMethod.POST,
+				request, String.class);
 		// logger.info("BODY " + response.getBody());
 		// logger.info("BODY " + response.getHeaders());
 
