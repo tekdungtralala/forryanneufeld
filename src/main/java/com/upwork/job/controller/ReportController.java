@@ -1,4 +1,4 @@
-package com.upwork.job;
+package com.upwork.job.controller;
 
 import java.util.Calendar;
 import java.util.HashMap;

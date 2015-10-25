@@ -1,0 +1,35 @@
+spring:
+    profiles:
+        active: local
+    datasource:
+        url: jdbc:mysql://localhost:3306/data_collector_test
+        username: root
+        password: password
+        driver-class-name: com.mysql.jdbc.Driver
+        driverClassName: com.mysql.jdbc.Driver
+        testWhileIdle: true
+        validationQuery: SELECT 1    
+    jpa:
+        database-platform: org.hibernate.dialect.MySQLInnoDBDialect
+        database: MYSQL
+        openInView: false
+        show_sql: false
+        generate-ddl: false
+        hibernate:
+            ddl-auto: none
+            naming-strategy: org.hibernate.cfg.EJB3NamingStrategy
+        properties:
+            hibernate.cache.use_second_level_cache: true
+            hibernate.cache.use_query_cache: false
+            hibernate.generate_statistics: false
+            hibernate.cache.region.factory_class: org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory
+    messages:
+        cache-seconds: 1
+
+cache:
+    timeToLiveSeconds: 3600
+    ehcache:
+        maxBytesLocalHeap: 16M
+
+server:
+    port: 9009

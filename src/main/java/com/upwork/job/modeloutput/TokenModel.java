@@ -4,6 +4,9 @@ public class TokenModel {
 
 	private String token;
 
+	public TokenModel() {
+	}
+
 	public TokenModel(String token) {
 		this.token = token;
 	}

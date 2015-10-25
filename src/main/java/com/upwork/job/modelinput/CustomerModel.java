@@ -4,6 +4,9 @@ public class CustomerModel {
 
 	private String customer_id;
 
+	public CustomerModel() {
+	}
+
 	public CustomerModel(String ci) {
 		this.customer_id = ci;
 	}

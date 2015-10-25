@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +36,7 @@ public class AuthController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<CustomerModel> postAuth(@RequestBody @Valid CustomerModel model) {
+	public ResponseEntity<TokenModel> postAuth(@RequestBody @Valid CustomerModel model) {
 		try {
 			String customerId = model.getCustomer_id();
 
@@ -50,7 +51,8 @@ public class AuthController {
 			Customer storedCustomer = customerRepo.findByCustomerId(customerId);
 			if (storedCustomer != null) {
 				logger.info("   return 200, customer is exist");
-				return RestResult.generateResp200(new TokenModel(storedCustomer.getToken()));
+				return new ResponseEntity<TokenModel>(new TokenModel(storedCustomer.getToken()), HttpStatus.OK);
+
 			}
 
 			UUID uuid = UUID.randomUUID();
@@ -62,7 +64,7 @@ public class AuthController {
 
 			logger.info("   return 201, save new customer");
 
-			return RestResult.generateResp201(new TokenModel(newCustomer.getToken()));
+			return new ResponseEntity<TokenModel>(new TokenModel(newCustomer.getToken()), HttpStatus.CREATED);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.info("   return 500, error : " + e.getMessage());
