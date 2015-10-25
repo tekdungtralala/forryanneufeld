@@ -69,7 +69,7 @@ public class DoTest {
 
 		List<SensorData> sensorsData = new ArrayList<SensorData>();
 		SensorData sd = new SensorData();
-		sd.setTime("time");
+		sd.setTime("2001-07-04T12:08:56.235-0700");
 		sd.setValue("value");
 		sensorsData.add(sd);
 		newSensor.setData(sensorsData);

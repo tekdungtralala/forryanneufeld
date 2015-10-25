@@ -1,6 +1,8 @@
 package com.upwork.job.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
@@ -85,6 +87,17 @@ public class ReportController {
 					if (StringUtils.isBlank(sd.getTime())) {
 						logger.info("   return 400, Time from " + sensorUUID + " is empty");
 						return RestResult.generateResp400("Time from " + sensorUUID + " is empty");
+					} else {
+						try {
+							SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+							Date date = df.parse(sd.getTime());
+							Calendar c = Calendar.getInstance();
+							c.setTime(date);
+							sd.setDateTime(c);
+						} catch (Exception e) {
+							return RestResult.generateResp400("Time from " + sensorUUID
+									+ " has wrong format, pleas use this format yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+						}
 					}
 
 					if (StringUtils.isBlank(sd.getValue())) {
@@ -111,7 +124,6 @@ public class ReportController {
 
 				for (SensorData sd : s.getData()) {
 					sd.setSensor(parent);
-					sd.setDateTime(Calendar.getInstance());
 					sensorDataRepo.save(sd);
 				}
 			}
